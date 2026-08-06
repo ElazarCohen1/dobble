@@ -3,6 +3,7 @@ import { generateDeck } from "../game/cards/GenerateCards.js";
 import { games } from "../game/game/GameManager.js";
 import Game from "../game/game/Game.js"
 import Player from "../game/player/Player.js";
+import { shuffle } from "../game/utilities/Shuffles.js";
 
 
 const router = express.Router();
@@ -11,7 +12,7 @@ router.post("/create", (req, res) => {
   const gameId = crypto.randomUUID();
   const playerId = crypto.randomUUID();
 
-  const deck = generateDeck(2);
+  const deck = shuffle(generateDeck(5));
   const game = new Game(deck, gameId);
   const name = req.body.name;
   // Add the first player
@@ -80,6 +81,34 @@ router.get("/:gameId/state", (req, res) => {
     });
 });
 
+
+
+router.post("/:gameId/click", (req, res) => {
+    const game = games.get(req.params.gameId);
+
+    if (!game) {
+        return res.status(404).json({ error: "Game not found" });
+    }
+
+    const { playerId, symbolId } = req.body;
+
+    const success = game.checkSamecard(playerId, symbolId);
+
+    if (success) {
+      console.log("playerId:", playerId);
+      console.log("ancienne carte joueur:", game.playerCards.get(playerId));
+
+      game.nextRound(playerId);
+
+      console.log("nouvelle center:", game.centerCard);
+    }
+
+    res.json({
+        success,
+        centerCard: game.centerCard,
+        playerCard: game.playerCards.get(playerId)
+    });
+});
 
 router.get("/deleteGame",(req,res)=>{
   const gameId = req.params.gameId;

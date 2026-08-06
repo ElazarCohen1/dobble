@@ -49,3 +49,25 @@ export async function getState(gameId, playerId) {
 
   return response.json();
 }
+
+export async function clickCard(gameId,playerId,symbolId) {
+  const response = await fetch(
+    `${API_URL}/game/${gameId}/click`,{
+
+      method:"POST",
+      headers:{
+        "Content-Type": "application/json",
+      },
+      body:JSON.stringify({
+        playerId,
+        symbolId
+      }),
+    }
+  );
+
+  if(!response.ok){
+    throw new Error("Impossible de verifier le click du joueur !!!");
+  }
+
+  return response.json();
+}

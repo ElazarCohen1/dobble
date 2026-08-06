@@ -16,10 +16,13 @@ export default class Game{
         this.players.push(player);
     }
 
+    
+
     start(){
         this.started = true;
-
+        
         this.centerCard = this.deck.pop();
+
 
         for (const player of this.players) {
             const card = this.deck.pop();
@@ -27,10 +30,30 @@ export default class Game{
             this.playerCards.set(player.id, card);
         }
     }
+    // array of id
+    checkSamecard(playerId,clickId){ 
+        const playerCard = this.playerCards.get(playerId);
 
+        if(!playerCard || !this.centerCard) return false;
+
+        return (
+            playerCard.includes(clickId) &&
+            this.centerCard.includes(clickId)
+        );
+    }
     
-    nextRound(){
+    nextRound(playerId) {
         this.currentRound++;
+
+        // On donne une nouvelle carte au joueur
+        if (this.deck.length > 0) {
+            this.playerCards.set(playerId,this.centerCard);
+            this.centerCard = this.deck.pop();
+        } else {
+            // Plus de cartes : fin de partie
+            this.playerCards.delete(playerId);
+        }
+
     }
 
     delete(){
