@@ -19,10 +19,8 @@ router.post("/create", (req, res) => {
   const player = new Player(playerId,name);
   
   game.addPlayer(player);
-  game.start();
 
   games.set(gameId, game);
-
   res.json({
     gameId,
     playerId,
@@ -30,39 +28,68 @@ router.post("/create", (req, res) => {
 });
 
 
-router.post("/:gameId/join", (req, res) => {
-  const game = games.get(req.params.gameId);
 
-  if (!game) {
+router.post("/:gameId/start",(req,res)=>{
+  const gameId = req.params.gameId;
+  const game = games.get(gameId);
+  if(!game){
     return res.status(404).json({
-      message: "Game not found",
+      message:"game not found !!"
     });
   }
 
-  if (game.players.size >= 2) {
+  game.start();
+  return res.status(200).json({
+    message: "Game started"
+  });
+
+});
+
+
+router.post("/:gameId/join", (req, res) => {
+  const gameId = req.params.gameId;
+
+  const game = games.get(gameId);
+
+  if (!game) {
+    return res.status(404).json({
+      message: "Game not found"
+    });
+  }
+
+  if (game.started) {
     return res.status(400).json({
-      message: "Game is full",
+      message: "Game already started"
+    });
+  }
+
+  if (game.players.length >= 2) {
+    return res.status(400).json({
+      message: "Game is full"
     });
   }
 
   const { name } = req.body;
 
   const playerId = crypto.randomUUID();
+  const player = new Player(playerId, name);
 
-  game.players.set(playerId, {
-    name,
-    score: 0,
-  });
+  game.addPlayer(player);
 
   res.json({
-    gameId: req.params.gameId,
-    playerId,
+    gameId,
+    playerId
   });
 });
 
 router.get("/:gameId/state", (req, res) => {
+  if(!req.params.gameId){
+    return res.status(500).json({
+      message: 'any game id given !!',
+    });
+  }
 
-    const game = games.get(req.params.gameId);
+  const game = games.get(req.params.gameId);
 
     if (!game) {
         return res.status(404).json({
@@ -75,6 +102,7 @@ router.get("/:gameId/state", (req, res) => {
     const playerCard = game.playerCards.get(playerId);
 
     res.json({
+        started:game.started,
         centerCard: game.centerCard,
         playerCard: playerCard,
         score: game.score[playerId]
@@ -95,16 +123,12 @@ router.post("/:gameId/click", (req, res) => {
     const success = game.checkSamecard(playerId, symbolId);
 
     if (success) {
-      console.log("playerId:", playerId);
-      console.log("ancienne carte joueur:", game.playerCards.get(playerId));
-
       game.nextRound(playerId);
-
-      console.log("nouvelle center:", game.centerCard);
     }
 
     res.json({
         success,
+        finished: game.centerCard == null,
         centerCard: game.centerCard,
         playerCard: game.playerCards.get(playerId)
     });

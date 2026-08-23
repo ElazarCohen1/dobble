@@ -15,7 +15,6 @@ export default class Game{
     addPlayer(player){
         this.players.push(player);
     }
-
     
 
     start(){
@@ -30,6 +29,7 @@ export default class Game{
             this.playerCards.set(player.id, card);
         }
     }
+
     // array of id
     checkSamecard(playerId,clickId){ 
         const playerCard = this.playerCards.get(playerId);
@@ -45,15 +45,17 @@ export default class Game{
     nextRound(playerId) {
         this.currentRound++;
 
-        // On donne une nouvelle carte au joueur
-        if (this.deck.length > 0) {
-            this.playerCards.set(playerId,this.centerCard);
-            this.centerCard = this.deck.pop();
-        } else {
-            // Plus de cartes : fin de partie
-            this.playerCards.delete(playerId);
-        }
+        // le joueur récupère la carte centrale
+        this.playerCards.set(playerId, this.centerCard);
 
+        // nouvelle carte centrale
+        if (this.deck.length > 0) {
+            this.centerCard = this.deck.pop();
+            return false;
+        }
+        // plus de cartes
+        this.centerCard = null;
+        return true;
     }
 
     delete(){

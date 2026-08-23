@@ -18,6 +18,20 @@ export async function createGame(name) {
   return response.json();
 }
 
+export async function startGame(gameId) {
+  const response = await fetch(`${API_URL}/game/${gameId}/start`, {
+    method:"POST",
+    headers:{
+      "Content-Type": "application/json",
+    },
+  });
+
+  if(!response.ok){
+    throw new Error("Impossible de commencer la partie");
+  }
+
+}
+
 
 export async function joinGame(gameId, name) {
   const response = await fetch(`${API_URL}/game/${gameId}/join`, {
@@ -33,7 +47,6 @@ export async function joinGame(gameId, name) {
   if (!response.ok) {
     throw new Error("Impossible de rejoindre la partie");
   }
-
   return response.json();
 }
 
