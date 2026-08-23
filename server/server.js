@@ -19,12 +19,12 @@ app.use(express.json());
 
 app.use("/game", gameRoutes);
 
-io.on("connection", (socket) => {
-    console.log("Client connected :", socket.id);
 
-    socket.on("start", () => {
-        console.log("Client start :", socket.id);
-    });
+io.on("connection", (socket) => {
+  socket.on("joinGame", ({ gameId, playerId }) => {
+    socket.join(gameId);
+  });
+
 });
 
 app.set("io", io);

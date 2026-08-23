@@ -33,16 +33,18 @@ router.post("/:gameId/start",(req,res)=>{
   const gameId = req.params.gameId;
   const game = games.get(gameId);
   if(!game){
-    return res.status(404).json({
-      message:"game not found !!"
-    });
+    return res.status(404).json({ message:"game not found !!" });
   }
 
   game.start();
-  return res.status(200).json({
-    message: "Game started"
+
+  const io = req.app.get("io");
+  io.to(gameId).emit("gameStarted", {
+    centerCard: game.centerCard,
+    playerCards: Object.fromEntries(game.playerCards),
   });
 
+  return res.status(200).json({ message: "Game started" });
 });
 
 
@@ -126,12 +128,24 @@ router.post("/:gameId/click", (req, res) => {
       game.nextRound(playerId);
     }
 
-    res.json({
+    const responseData = {
         success,
         finished: game.centerCard == null,
         centerCard: game.centerCard,
-        playerCard: game.playerCards.get(playerId)
+        playerCard: game.playerCards.get(playerId),
+        score:game.score
+    };
+
+    // notifie TOUS les joueurs de la partie (via socket) que l'état a changé
+    const io = req.app.get("io");
+    io.to(req.params.gameId).emit("stateUpdate", {
+      finished: responseData.finished,
+      centerCard: game.centerCard,
+      playerCards: Object.fromEntries(game.playerCards),
+      score : game.score
     });
+
+    res.json(responseData);
 });
 
 router.get("/deleteGame",(req,res)=>{

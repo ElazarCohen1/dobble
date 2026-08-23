@@ -9,9 +9,11 @@ export default function Game() {
   const [centerCard, setCenterCard] = useState([]);
   const [playerCard, setPlayerCard] = useState([]);
   const [gameStarted,setGameStarted] = useState(false);
+  const [score,setScore] = useState(0);
   const { gameId } = useParams();
   const { state } = useLocation();
   const playerId = state?.playerId;
+
 
 
 
@@ -49,14 +51,32 @@ export default function Game() {
   }
 
   useEffect(() => {
-    if (!gameId || !playerId || gameStarted) return;
+    if (!gameId || !playerId) return;
 
-    loadGame();
+    socket.emit("joinGame", { gameId, playerId });
 
-    const interval = setInterval(loadGame, 1000);
+    socket.on("gameStarted", (data) => {
+      setGameStarted(true);
+      setCenterCard(data.centerCard);
+      setPlayerCard(data.playerCards[playerId]);
+    });
 
-    return () => clearInterval(interval);
-  }, [gameId, playerId, gameStarted]);
+    socket.on("stateUpdate", (data) => {
+      if (data.finished) {
+        alert("partie terminée");
+        return;
+      }
+      setCenterCard(data.centerCard);
+      setPlayerCard(data.playerCards[playerId]);
+      setScore(data.score);
+
+    });
+
+    return () => {
+      socket.off("gameStarted");
+      socket.off("stateUpdate");
+    };
+}, [gameId, playerId]);
 
   return (
     <div className="min-h-screen bg-[#FFF4DC] p-6">
@@ -73,6 +93,9 @@ export default function Game() {
                 {gameId}
               </span>
             </div>
+          </div>
+          <div>
+            Score : {score[playerId] || 0}
           </div>
 
           <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-14">

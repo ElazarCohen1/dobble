@@ -6,7 +6,7 @@ export default class Game{
         this.deck = deck; // list of list
         this.players = [] // array of Player 
         this.currentRound = 0;
-        this.score = {};
+        this.score = {}; // map playerId => score
         this.started = false;
         this.centerCard = null;
         this.playerCards = new Map();
@@ -47,7 +47,7 @@ export default class Game{
 
         // le joueur récupère la carte centrale
         this.playerCards.set(playerId, this.centerCard);
-
+        this.score[playerId] = (this.score[playerId] || 0) +1 ;
         // nouvelle carte centrale
         if (this.deck.length > 0) {
             this.centerCard = this.deck.pop();
